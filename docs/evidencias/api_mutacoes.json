@@ -1,0 +1,58 @@
+{
+  "executado_em": "2026-09-26T22:00:49.254476+00:00",
+  "operacoes": [
+    {
+      "metodo": "PUT",
+      "url": "https://analista-teste.seatecnologia.com.br/employees/aeba",
+      "status": 200,
+      "json_retornado": {
+        "state": {
+          "employee": {
+            "isActive": false,
+            "name": "QA_SEA_EXPLORACAO_49ea08ca75",
+            "gender": "masculino",
+            "cpf": "00000000000",
+            "birthDay": "2000-01-01",
+            "rg": "RG_TESTE_SEM_VALIDADE",
+            "role": "Cargo 02",
+            "usesEpi": false,
+            "caNumber": "00000"
+          }
+        },
+        "id": "aeba"
+      }
+    },
+    {
+      "metodo": "PATCH",
+      "url": "https://analista-teste.seatecnologia.com.br/employees/aeba",
+      "status": 200,
+      "json_retornado": {
+        "state": {
+          "employee": {
+            "isActive": true,
+            "name": "QA_SEA_EXPLORACAO_49ea08ca75",
+            "gender": "masculino",
+            "cpf": "00000000000",
+            "birthDay": "2000-01-01",
+            "rg": "RG_TESTE_SEM_VALIDADE",
+            "role": "Cargo 02",
+            "usesEpi": false,
+            "caNumber": "00000"
+          }
+        },
+        "id": "aeba"
+      }
+    },
+    {
+      "metodo": "DELETE",
+      "url": "https://analista-teste.seatecnologia.com.br/employees/aeba",
+      "status": 200
+    },
+    {
+      "metodo": "GET apos DELETE",
+      "url": "https://analista-teste.seatecnologia.com.br/employees/aeba",
+      "status": 404,
+      "body": "Not Found"
+    }
+  ]
+}

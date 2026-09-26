@@ -1,0 +1,68 @@
+{
+  "nome_sintetico": "QA_SEA_EXPLORACAO_49ea08ca75",
+  "valores_visiveis_antes": [
+    "Cargo 01",
+    "Ativid 01",
+    "Capacete de segurança"
+  ],
+  "cpf_invalido_digitado": "00000000000",
+  "registro_retornado": {
+    "id": "aeba",
+    "state": {
+      "employee": {
+        "isActive": false,
+        "name": "QA_SEA_EXPLORACAO_49ea08ca75",
+        "gender": "masculino",
+        "cpf": "00000000000",
+        "birthDay": "2000-01-01",
+        "rg": "RG_TESTE_SEM_VALIDADE",
+        "role": "",
+        "usesEpi": false,
+        "caNumber": "00000"
+      }
+    }
+  },
+  "network": [
+    {
+      "method": "GET",
+      "url": "https://analista-teste.seatecnologia.com.br/employees"
+    },
+    {
+      "url": "https://analista-teste.seatecnologia.com.br/employees",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://analista-teste.seatecnologia.com.br/employees"
+    },
+    {
+      "method": "POST",
+      "url": "https://analista-teste.seatecnologia.com.br/employees",
+      "postData": {
+        "state": {
+          "employee": {
+            "isActive": false,
+            "name": "QA_SEA_EXPLORACAO_49ea08ca75",
+            "gender": "masculino",
+            "cpf": "00000000000",
+            "birthDay": "2000-01-01",
+            "rg": "RG_TESTE_SEM_VALIDADE",
+            "role": "",
+            "usesEpi": false,
+            "caNumber": "00000"
+          }
+        }
+      }
+    },
+    {
+      "url": "https://analista-teste.seatecnologia.com.br/employees",
+      "status": 200
+    },
+    {
+      "url": "https://analista-teste.seatecnologia.com.br/employees",
+      "status": 201
+    }
+  ],
+  "refresh_necessario": true,
+  "card_text": "QA_SEA_EXPLORACAO_49ea08ca75\n000.000.000-00"
+}

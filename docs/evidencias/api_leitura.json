@@ -1,0 +1,25 @@
+[
+  {
+    "method": "GET",
+    "path": "https://analista-teste.seatecnologia.com.br/employees/aeba",
+    "status": 200,
+    "content_type": "application/json",
+    "allow": "GET, HEAD, PUT, PATCH, POST, DELETE",
+    "own_record_confirmed": true
+  },
+  {
+    "method": "GET",
+    "path": "https://analista-teste.seatecnologia.com.br/employees/qa-sea-inexistente-49ea08ca75",
+    "status": 404,
+    "content_type": "text/plain; charset=utf-8",
+    "allow": "GET, HEAD, PUT, PATCH, POST, DELETE",
+    "body": "Not Found"
+  },
+  {
+    "method": "OPTIONS",
+    "path": "https://analista-teste.seatecnologia.com.br/employees/aeba",
+    "status": 204,
+    "content_type": null,
+    "allow": "GET, HEAD, PUT, PATCH, POST, DELETE"
+  }
+]
