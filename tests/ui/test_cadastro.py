@@ -20,7 +20,17 @@ def test_cadastro_sucesso(trabalhador, browser, api_url):
     browser.find_element(By.CSS_SELECTOR, 'label[for="role"] + div').click()
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[title="Cargo 02"]')))
     browser.find_element(By.CSS_SELECTOR, '[title="Cargo 02"]').click()
-    browser.find_element(By.CSS_SELECTOR, 'input[type="checkbox"]').click()
+
+    # Usa EPI: mantém "O trabalhador não usa EPI" desmarcado.
+    browser.find_element(By.CSS_SELECTOR, 'input[name="caNumber"]').send_keys("00000")
+    browser.find_element(By.CSS_SELECTOR, 'label[for="activity"] + div').click()
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '.ant-select-item-option[title="Ativid 02"]')))
+    browser.find_element(By.CSS_SELECTOR, '.ant-select-item-option[title="Ativid 02"]').click()
+    browser.find_element(By.CSS_SELECTOR, 'label[for="epi"] + div').click()
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '.ant-select-item-option[title="Luvas descartáveis"]')))
+    browser.find_element(By.CSS_SELECTOR, '.ant-select-item-option[title="Luvas descartáveis"]').click()
+    assert not browser.find_element(By.CSS_SELECTOR, 'input[type="checkbox"]').is_selected()
+
     time.sleep(5)  # Pausa para visualizar o formulário preenchido.
     browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
 
@@ -30,10 +40,13 @@ def test_cadastro_sucesso(trabalhador, browser, api_url):
         resposta.raise_for_status()
         for registro in resposta.json():
             if registro.get("state", {}).get("employee", {}).get("rg") == trabalhador["rg"]:
-                return True
+                return registro["state"]["employee"]
         return False
 
-    wait.until(cadastro_salvo)
+    dados_salvos = wait.until(cadastro_salvo)
+    assert dados_salvos["activity"] == "Ativid 02"
+    assert dados_salvos["epi"] == "luvas-descartaveis"
+    assert dados_salvos["caNumber"] == "00000"
     browser.refresh()
     wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, "main"), trabalhador["name"]))
     nome_na_listagem = trabalhador["name"] in browser.find_element(By.CSS_SELECTOR, "main").text
