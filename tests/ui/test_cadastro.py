@@ -29,7 +29,7 @@ def test_cadastro_sucesso(trabalhador, browser, api_url):
         resposta = requests.get(api_url, timeout=15)
         resposta.raise_for_status()
         for registro in resposta.json():
-            if registro.get("state", {}).get("employee", {}).get("name") == trabalhador["name"]:
+            if registro.get("state", {}).get("employee", {}).get("rg") == trabalhador["rg"]:
                 return True
         return False
 

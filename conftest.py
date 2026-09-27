@@ -26,10 +26,10 @@ def api_url():
 @pytest.fixture
 def trabalhador(api_url):
     dados = {
-        "name": "Brunno QA " + uuid4().hex[:6],
+        "name": "Brunno QA",
         "cpf": "00000000000",  # Fictício; a aplicação aceita, mas não é CPF válido.
         "birthDay": "2000-01-01",
-        "rg": "RG_TESTE",
+        "rg": "RG_TESTE_" + uuid4().hex[:12],
         "gender": "masculino",
         "isActive": False,
         "role": "Cargo 02",
@@ -38,19 +38,20 @@ def trabalhador(api_url):
         "epi": "",
         "caNumber": "",
     }
-    print("Registro exclusivo deste teste:", dados["name"])
+    print("Dados deste teste:", dados["name"], dados["rg"])
     try:
         yield dados
     finally:
-        # Limpa somente o nome exclusivo deste teste, mesmo se ele falhar.
+        # Localiza o RG fictício exclusivo e limpa pelo ID; nomes podem se repetir.
         resposta = requests.get(api_url, timeout=15)
         resposta.raise_for_status()
         for registro in resposta.json():
-            if registro.get("state", {}).get("employee", {}).get("name") == dados["name"]:
+            if registro.get("state", {}).get("employee", {}).get("rg") == dados["rg"]:
                 url_registro = f"{api_url}/{registro['id']}"
                 consulta = requests.get(url_registro, timeout=15)
                 consulta.raise_for_status()
                 assert consulta.json()["state"]["employee"]["name"] == dados["name"]
+                assert consulta.json()["state"]["employee"]["rg"] == dados["rg"]
                 exclusao = requests.delete(url_registro, timeout=15)
                 assert exclusao.status_code == 200, "Não foi possível limpar o registro."
                 assert requests.get(url_registro, timeout=15).status_code == 404
