@@ -1,8 +1,20 @@
 # Desafio SEA — QA com Selenium, Pytest e Requests
 
-Automação pequena para o [sistema do desafio](https://analista-teste.seatecnologia.com.br/), com exploração funcional, comparação UI/API e evidências sem dados pessoais de terceiros.
+Automação simples para o [sistema do desafio](https://analista-teste.seatecnologia.com.br/), com **5 testes independentes: 4 usam Selenium e 1 usa somente Requests**.
 
-**Execução completa em 26/09/2026: 17 casos, 15 aprovados e 2 falhas esperadas (`xfailed`).** Os dois defeitos continuam presentes. Nenhum teste não executado foi contado como aprovado. Veja [resultados](docs/evidencias/execucao.json), [defeitos](docs/relatorio_bugs.md) e [explicação de cada teste](docs/guia_dos_testes.md).
+## Os cinco testes atuais
+
+| Teste | Ferramentas | O que verifica |
+|---|---|---|
+| `test_cadastro_sucesso` | Selenium + Requests | Cadastra Brunno QA com EPI, confere atividade, EPI e CA salvos pela API e verifica o nome na listagem. |
+| `test_cadastro_cpf_invalido` | Selenium | Informa CPF com 10 dígitos, confere a validação de tamanho mínimo e verifica que o formulário permanece aberto. |
+| `test_inativar_trabalhador` | Requests + Selenium | Cria um registro próprio ativo, altera para inativo pela API e confere o resultado na listagem filtrada. |
+| `test_reativar_trabalhador` | Requests + Selenium | Cria um registro próprio inativo, altera para ativo pela API e confere o resultado na listagem filtrada. |
+| `test_consulta_employees` | Requests | Consulta `/employees` e verifica status 200, lista JSON, campos e tipos de dados. |
+
+Os dois testes de status alteram os registros pela API porque a exploração não encontrou edição funcional pela interface. Os cenários de escrita usam registros próprios; nenhum teste depende da execução de outro.
+
+**Quantidade de testes não é resultado de execução.** A coleta atual confirmou `5 tests collected`. O CI aprovado verifica o código com Ruff e coleta esses cinco testes: são **0 cenários funcionais executados no CI**. Para executar os cenários no Chrome e na API, use os comandos abaixo e consulte o resultado do Pytest.
 
 ## Preparar no Windows / PowerShell
 
@@ -27,40 +39,55 @@ Para sair do ambiente ativado: `deactivate`. A pasta `.venv` não é enviada ao 
 
 ## Executar
 
-Somente casos sem escrita (10 casos):
+Execute os comandos na pasta do projeto, com a `.venv` ativada, inclusive pelo terminal do VS Code.
+
+Todos os cinco testes:
 
 ```powershell
-python -m pytest -m "not escrita"
+python -m pytest -v
 ```
 
-Todos os 17 casos, autorizando criação e exclusão **somente dos dados sintéticos daquela execução**:
+Somente os dois testes de cadastro:
 
 ```powershell
-python -m pytest --executar-escrita
+python -m pytest tests/ui/test_cadastro.py -v
 ```
 
-Sem essa opção, `python -m pytest` pula os sete casos que precisam da fixture de escrita. Isso é `skipped`, não aprovação. Nenhum teste utiliza registros existentes para PUT/PATCH/DELETE. O ambiente compartilhado não deve ser usado para execução paralela da suíte.
-
-Um teste individual:
+Cada teste individualmente:
 
 ```powershell
-python -m pytest tests/ui/test_cadastro.py::test_cadastro_campos_obrigatorios -v
-python -m pytest tests/ui/test_cadastro.py::test_cadastro_sucesso --executar-escrita -v
+python -m pytest tests/ui/test_cadastro.py::test_cadastro_sucesso -v
+python -m pytest tests/ui/test_cadastro.py::test_cadastro_cpf_invalido -v
+python -m pytest tests/ui/test_status.py::test_inativar_trabalhador -v
+python -m pytest tests/ui/test_status.py::test_reativar_trabalhador -v
+python -m pytest tests/api/test_employees.py::test_consulta_employees -v
 ```
 
-Apenas a API:
+Os cenários de cadastro e status criam dados sintéticos e fazem a limpeza ao terminar. A consulta isolada da API é somente leitura. Execute a suíte sequencialmente, pois o sistema é compartilhado.
+
+Para apenas listar e carregar os testes, sem executar os cenários:
 
 ```powershell
-python -m pytest tests/api --executar-escrita -v
+python -m pytest --collect-only -q
 ```
 
-Para apresentar os defeitos como falhas convencionais, sem aplicar `xfail`:
+`collected` significa encontrado pelo Pytest. `passed` significa que o teste foi executado e suas verificações passaram.
+
+## CI com GitHub Actions e Ruff
+
+O arquivo [ci.yml](.github/workflows/ci.yml) executa a verificação em pushes na branch `codex/qa-sea`, em pull requests destinados a ela e manualmente pela aba Actions.
+
+O workflow prepara o Python, instala `requirements-ci.txt`, analisa `conftest.py` e `tests/` com Ruff e verifica a coleta com Pytest. Ruff procura problemas como imports não utilizados e variáveis indefinidas. Qualquer falha nessas etapas deixa o CI vermelho.
+
+A [primeira execução desse CI foi aprovada](https://github.com/brunno3356/Desafio-SEA/actions/runs/36322513501). Isso confirma a análise estática e o carregamento dos cinco testes. **O CI não abre o Chrome nem executa os fluxos na aplicação ou na API.**
+
+Para reproduzir as verificações do CI localmente:
 
 ```powershell
-python -m pytest tests/api/test_employees.py::test_post_employee_rejeita_cpf_vazio tests/integration/test_ui_api.py::test_cadastro_preserva_selecoes_iniciais_na_api --executar-escrita --runxfail -v
+python -m pip install -r requirements-ci.txt
+python -m ruff check conftest.py tests
+python -m pytest --collect-only -q
 ```
-
-É esperado que esse último comando termine com falha enquanto BUG-001 e BUG-003 existirem. `xfail(strict=True, raises=AssertionError)` registra a expectativa de falha da asserção; uma correção que faça o teste passar gera `XPASS(strict)` e pede revisão da marca. Exceções de conexão e Selenium não são tratadas como falhas esperadas. As asserções e seus motivos devem ser revisados se o contrato mudar.
 
 ## Gerar evidências
 
@@ -68,10 +95,10 @@ O relatório JUnit é nativo do Pytest:
 
 ```powershell
 New-Item -ItemType Directory -Force evidencias
-python -m pytest --executar-escrita --junitxml=evidencias/execucao.xml 2>&1 | Tee-Object -FilePath evidencias/execucao.txt
+python -m pytest -v --junitxml=evidencias/execucao.xml 2>&1 | Tee-Object -FilePath evidencias/execucao.txt
 ```
 
-`evidencias/` fica fora do Git. A pasta `docs/evidencias/` contém somente evidências revisadas da entrega: dados sintéticos, nomes dos campos e metadados. Nunca publique resposta integral de GET `/employees`, HTML ou print da listagem completa: podem conter dados de outras pessoas.
+`evidencias/` fica fora do Git e recebe os resultados da execução feita pelo comando acima. A pasta `docs/evidencias/` guarda evidências históricas da exploração inicial. Nunca publique resposta integral de GET `/employees`, HTML ou print da listagem completa: podem conter dados de outras pessoas.
 
 Para obter um print de um formulário preenchido exclusivamente com seus dados fictícios, antes de salvar, adicione temporariamente no teste:
 
@@ -82,7 +109,7 @@ Path("evidencias").mkdir(exist_ok=True)
 browser.find_element(By.CSS_SELECTOR, "form").screenshot("evidencias/formulario.png")
 ```
 
-Capturar um elemento pode fazer o Selenium rolar a página. Para BUG-005, a exploração usou captura nativa recortada do Chrome sem esse deslocamento; os testes entregues não precisam de CDP. Não há captura automática de telas de terceiros ao falhar.
+Capturar um elemento pode fazer o Selenium rolar a página. Revise as evidências antes de compartilhá-las.
 
 ## Navegador e fixtures
 
@@ -97,44 +124,40 @@ browser.get("https://analista-teste.seatecnologia.com.br/")
 
 A fixture `browser` cria uma sessão por teste. `yield browser` entrega a sessão à função que pediu o argumento `browser`. O bloco `finally` chama `browser.quit()` mesmo quando um `assert` falha. Não existe BrowserFactory, gerenciador próprio, Page Object ou biblioteca que substitua os comandos do Selenium. O [Selenium Manager](https://www.selenium.dev/documentation/selenium_manager/) acompanha o Selenium desde a versão 4.6 e resolve o driver quando nenhum é fornecido.
 
-A janela é configurada em 1440×1500 para o caso de persistência: em 1440×1100 a lista recorta o quinto cartão (BUG-005). O teste de cadastro espera a persistência pela API e recarrega **uma vez** para contornar a listagem desatualizada (BUG-004). Esses contornos delimitam o que o teste aprova; não significam que os defeitos de interface foram corrigidos.
+A janela é configurada em 1440×1500. As esperas pelo estado dos elementos usam `WebDriverWait`. Há pausas de 5 segundos em pontos de apresentação e antes de fechar o Chrome, para facilitar a visualização. No cadastro com sucesso, o teste espera a persistência pela API e recarrega a página uma vez antes de conferir a listagem.
 
 As outras fixtures são simples:
 
 - `api_url`: devolve a URL que a interface realmente usa.
-- `trabalhador`: gera um nome `QA_SEA_<uuid>` único e dados fictícios; no `finally`, localiza o nome exato, confirma novamente o ID/nome e exclui. O nome é impresso no log capturado do Pytest para recuperar resíduos em caso de erro.
-- `registro_api`: cria um trabalhador pela API para um caso de PUT, PATCH ou DELETE; aproveita a limpeza da fixture anterior.
+- `trabalhador`: fornece o nome `Brunno QA` e um RG fictício exclusivo, `RG_TESTE_<identificador>`. No `finally`, procura esse RG, consulta o registro pelo ID, confirma nome e RG e exclui somente o dado daquele teste. Nome e RG são impressos no log para identificar resíduos em caso de erro.
 
-CPF `00000000000` foi escolhido por ser deliberadamente fictício e inválido. A versão atual aceita esse dado (BUG-002); o teste chamado “sucesso” comprova o fluxo e a persistência, não validade cadastral do CPF. Nenhuma credencial é necessária ou foi inventada.
+CPF `00000000000` foi escolhido por ser deliberadamente fictício e inválido. A aplicação aceitou esse dado nas execuções realizadas; o teste chamado “sucesso” comprova o fluxo e a persistência, não a validade cadastral do CPF. Já o teste negativo informa `0000000000`, com apenas 10 dígitos, e verifica a validação de tamanho mínimo. Nenhuma credencial é necessária.
 
-Se uma interrupção ou falha de rede impedir a limpeza, o teste registra erro. Consulte somente o nome exato mostrado no log e seu ID antes de removê-lo. Não limpe todos os nomes `QA_SEA_`: podem pertencer a outra execução.
+Se uma falha de rede impedir a limpeza, o teste pode registrar erro; uma interrupção do processo também pode deixar resíduos. Identifique o RG exclusivo e confirme o ID antes de remover um registro. O nome `Brunno QA` pode se repetir e, sozinho, não identifica o dado daquela execução.
 
-## API confirmada
+## API utilizada pela suíte
 
 Base: `https://analista-teste.seatecnologia.com.br/employees`.
 
-| Método/rota | Observado | Verificação |
+| Método/rota | Status esperado | Uso nos cinco testes e nas fixtures |
 |---|---|---|
 | GET `/employees` | 200, lista JSON | Coleção, campos e tipos |
 | GET `/employees/{id}` | 200 para registro existente | Consulta do próprio dado de teste |
-| GET ID inexistente | 404, texto `Not Found` | Erro sem presumir JSON |
-| HEAD `/employees` | 200, sem corpo | Metadados |
-| OPTIONS `/employees` | 204 | Anúncio de métodos, isoladamente não comprova implementação |
-| POST `/employees` | 201 | Criação real sintética + GET posterior |
-| PUT `/employees/{id}` | 200 | Atualização real de registro próprio + GET |
-| PATCH `/employees/{id}` | 200 | Atualização real de registro próprio + GET |
-| DELETE `/employees/{id}` | 200 | Exclusão autorizada + GET 404 |
+| POST `/employees` | 201 | Criação de registro sintético nos testes de status |
+| PATCH `/employees/{id}` | 200 | Inativação e reativação de registro próprio |
+| DELETE `/employees/{id}` | 200 | Limpeza na fixture, seguida de GET que deve retornar 404 |
 
-O corpo utilizado pela interface é `{"state": {"employee": {...}}}`. IDs observados são strings e inteiros. Atividade/EPI podem estar ausentes nos dados atuais. Não se afirma suporte a PUT/PATCH/DELETE na rota da coleção. O teste PATCH envia `state.employee` completo; não verifica a semântica de mesclagem de objetos aninhados.
+O corpo utilizado é `{"state": {"employee": {...}}}`. O teste de consulta aceita IDs string ou inteiro. O PATCH envia `state.employee` completo. Essas requisições fazem parte dos cinco cenários e de sua preparação/limpeza; não são casos de teste adicionais.
 
 ## Organização e leitura para a entrevista
 
 ```text
 tests/
   ui/test_cadastro.py
-  ui/test_listagem.py
+  ui/test_status.py
   api/test_employees.py
-  integration/test_ui_api.py
+.github/workflows/ci.yml
+backup/
 docs/
   plano_de_testes.md
   relatorio_bugs.md
@@ -145,10 +168,15 @@ docs/
 conftest.py
 pytest.ini
 requirements.txt
+requirements-ci.txt
 .gitignore
 README.md
 ```
 
-Não existe `test_login.py`: a exploração não encontrou autenticação. Os dois cenários equivalentes solicitados estão em `test_cadastro.py`, em funções independentes.
+Não existe `test_login.py`: a exploração não encontrou autenticação. Os dois cenários de cadastro estão em `test_cadastro.py`, em funções independentes.
 
-Comece pela fixture `browser`, depois leia o teste de campos obrigatórios e o [guia dos testes](docs/guia_dos_testes.md). Em seguida, veja o POST com Requests e o teste de comparação das seleções iniciais. Termine com o [plano](docs/plano_de_testes.md), [relatório](docs/relatorio_bugs.md), [prioridades e limites](docs/estrategia.md) e [diário de IA](docs/diario_ia.md).
+Para entender o código, comece pela fixture `browser` em `conftest.py`, leia os dois testes de cadastro, os dois de status e, por último, a consulta da API.
+
+## Material histórico
+
+Os documentos e resultados em `docs/` pertencem à exploração e à versão anterior da automação. As quantidades e os comandos antigos desses documentos não representam a suíte atual de cinco testes. A cópia da automação anterior está em `backup/automacao_17_testes_2026-09-27.zip` e não participa da execução principal.
