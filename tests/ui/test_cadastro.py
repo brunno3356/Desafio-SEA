@@ -41,21 +41,22 @@ def test_cadastro_sucesso(trabalhador, browser, api_url):
     assert nome_na_listagem, "O trabalhador cadastrado não apareceu na listagem."
 
 
-def test_cadastro_campo_obrigatorio(browser):
+def test_cadastro_cpf_invalido(trabalhador, browser):
     wait = WebDriverWait(browser, 10)
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "h2 + button")))
     browser.find_element(By.CSS_SELECTOR, "h2 + button").click()
     wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'input[name="name"]')))
 
-    # Preenche os outros obrigatórios e deixa somente Nome vazio.
-    browser.find_element(By.CSS_SELECTOR, 'input[name="cpf"]').send_keys("00000000000")
+    # Preenche os obrigatórios, mas informa um CPF com apenas 10 dígitos.
+    browser.find_element(By.CSS_SELECTOR, 'input[name="name"]').send_keys(trabalhador["name"])
+    browser.find_element(By.CSS_SELECTOR, 'input[name="cpf"]').send_keys("0000000000")
     browser.find_element(By.CSS_SELECTOR, 'input[name="birthDay"]').send_keys("01012000", Keys.TAB)
-    browser.find_element(By.CSS_SELECTOR, 'input[name="rg"]').send_keys("RG_TESTE")
+    browser.find_element(By.CSS_SELECTOR, 'input[name="rg"]').send_keys(trabalhador["rg"])
     browser.find_element(By.CSS_SELECTOR, 'input[type="checkbox"]').click()
-    time.sleep(5)  # Pausa para visualizar o formulário com Nome vazio.
+    time.sleep(5)  # Pausa para visualizar o CPF inválido antes de salvar.
     browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
 
-    nome = browser.find_element(By.CSS_SELECTOR, 'input[name="name"]')
-    assert nome.get_property("validity")["valueMissing"] is True
-    assert nome.get_property("validationMessage") != ""
+    cpf = browser.find_element(By.CSS_SELECTOR, 'input[name="cpf"]')
+    assert cpf.get_property("validity")["tooShort"] is True
+    assert cpf.get_property("validationMessage") != ""
     assert browser.find_element(By.CSS_SELECTOR, "form").is_displayed()
