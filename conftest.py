@@ -26,7 +26,7 @@ def api_url():
 @pytest.fixture
 def trabalhador(api_url):
     dados = {
-        "name": "QA_SEA_" + uuid4().hex[:12],
+        "name": "Brunno QA " + uuid4().hex[:6],
         "cpf": "00000000000",  # Fictício; a aplicação aceita, mas não é CPF válido.
         "birthDay": "2000-01-01",
         "rg": "RG_TESTE",
