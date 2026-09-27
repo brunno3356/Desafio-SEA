@@ -1,3 +1,4 @@
+import time
 from uuid import uuid4
 
 import pytest
@@ -13,6 +14,7 @@ def browser():
         browser.get("https://analista-teste.seatecnologia.com.br/")
         yield browser
     finally:
+        time.sleep(5)  # Mantém o resultado visível antes de fechar o Chrome.
         browser.quit()
 
 

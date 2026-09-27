@@ -1,3 +1,5 @@
+import time
+
 import requests
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -19,6 +21,7 @@ def test_cadastro_sucesso(trabalhador, browser, api_url):
     wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[title="Cargo 02"]')))
     browser.find_element(By.CSS_SELECTOR, '[title="Cargo 02"]').click()
     browser.find_element(By.CSS_SELECTOR, 'input[type="checkbox"]').click()
+    time.sleep(5)  # Pausa para visualizar o formulário preenchido.
     browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
 
     # O site atualiza a lista antes de terminar de salvar. Aguarda e recarrega uma vez.
@@ -49,6 +52,7 @@ def test_cadastro_campo_obrigatorio(browser):
     browser.find_element(By.CSS_SELECTOR, 'input[name="birthDay"]').send_keys("01012000", Keys.TAB)
     browser.find_element(By.CSS_SELECTOR, 'input[name="rg"]').send_keys("RG_TESTE")
     browser.find_element(By.CSS_SELECTOR, 'input[type="checkbox"]').click()
+    time.sleep(5)  # Pausa para visualizar o formulário com Nome vazio.
     browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
 
     nome = browser.find_element(By.CSS_SELECTOR, 'input[name="name"]')
