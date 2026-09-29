@@ -1,9 +1,8 @@
 import time
 
 import requests
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
+
+from pages.listagem_page import ListagemPage
 
 
 def test_inativar_trabalhador(trabalhador, browser, api_url):
@@ -31,16 +30,13 @@ def test_inativar_trabalhador(trabalhador, browser, api_url):
         if dados["name"] == trabalhador["name"] and dados["isActive"]:
             ativos_esperados += 1
 
-    browser.refresh()
-    wait = WebDriverWait(browser, 15)
-    wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, "main"), trabalhador["name"]))
-    # O botão de ativos fica imediatamente antes de "Limpar filtros".
+    listagem = ListagemPage(browser)
+    listagem.recarregar()
+    listagem.aguardar_trabalhador(trabalhador["name"])
     time.sleep(5)  # Pausa para visualizar a listagem antes do filtro.
-    browser.find_element(By.CSS_SELECTOR, "button:has(+ button.clear)").click()
-    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "button.isActive")))
-    wait.until(lambda b: b.find_element(By.CSS_SELECTOR, "main").text.splitlines().count(trabalhador["name"]) == ativos_esperados)
-    nomes_na_tela = browser.find_element(By.CSS_SELECTOR, "main").text.splitlines()
-    assert nomes_na_tela.count(trabalhador["name"]) == ativos_esperados
+    listagem.filtrar_ativos()
+    listagem.aguardar_quantidade_com_nome(trabalhador["name"], ativos_esperados)
+    assert listagem.quantidade_com_nome(trabalhador["name"]) == ativos_esperados
 
 
 def test_reativar_trabalhador(trabalhador, browser, api_url):
@@ -66,12 +62,10 @@ def test_reativar_trabalhador(trabalhador, browser, api_url):
         if dados["name"] == trabalhador["name"] and dados["isActive"]:
             ativos_esperados += 1
 
-    browser.refresh()
-    wait = WebDriverWait(browser, 15)
-    wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, "main"), trabalhador["name"]))
+    listagem = ListagemPage(browser)
+    listagem.recarregar()
+    listagem.aguardar_trabalhador(trabalhador["name"])
     time.sleep(5)  # Pausa para visualizar a listagem antes do filtro.
-    browser.find_element(By.CSS_SELECTOR, "button:has(+ button.clear)").click()
-    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "button.isActive")))
-    wait.until(lambda b: b.find_element(By.CSS_SELECTOR, "main").text.splitlines().count(trabalhador["name"]) == ativos_esperados)
-    nomes_na_tela = browser.find_element(By.CSS_SELECTOR, "main").text.splitlines()
-    assert nomes_na_tela.count(trabalhador["name"]) == ativos_esperados
+    listagem.filtrar_ativos()
+    listagem.aguardar_quantidade_com_nome(trabalhador["name"], ativos_esperados)
+    assert listagem.quantidade_com_nome(trabalhador["name"]) == ativos_esperados
