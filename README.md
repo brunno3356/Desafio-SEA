@@ -75,7 +75,7 @@ python -m pytest --collect-only -q
 
 ## CI com GitHub Actions e Ruff
 
-O arquivo [ci.yml](.github/workflows/ci.yml) executa a verificação em pushes na branch `codex/qa-sea`, em pull requests destinados a ela e manualmente pela aba Actions.
+O arquivo [ci.yml](.github/workflows/ci.yml) executa a verificação em pushes na branch `qa-sea`, em pull requests destinados a ela e manualmente pela aba Actions.
 
 O workflow prepara o Python, instala `requirements-ci.txt`, analisa `conftest.py` e `tests/` com Ruff e verifica a coleta com Pytest. Ruff procura problemas como imports não utilizados e variáveis indefinidas. Qualquer falha nessas etapas deixa o CI vermelho.
 

@@ -2,9 +2,9 @@ name: CI - Analise Python
 
 on:
   push:
-    branches: [codex/qa-sea]
+    branches: [qa-sea]
   pull_request:
-    branches: [codex/qa-sea]
+    branches: [qa-sea]
   workflow_dispatch:
 
 permissions:
