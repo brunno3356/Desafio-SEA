@@ -5,4 +5,7 @@ __pycache__/
 .env
 /tmp/
 /evidencias/
+/docs/
+/backup/
+/output/
 .ruff_cache/

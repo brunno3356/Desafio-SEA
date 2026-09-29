@@ -2,6 +2,15 @@
 
 Automação simples para o [sistema do desafio](https://analista-teste.seatecnologia.com.br/), com **5 testes independentes: 4 usam Selenium e 1 usa somente Requests**.
 
+## Plano de testes e relatório de defeitos
+
+As versões atuais estão no Google Docs:
+
+- [Plano de testes e relatório de execução](https://docs.google.com/document/d/1mxmSf96rru3J-ONbDtFJO531tZZ0reQyzD6VbMo26x0/edit)
+- [Relatório de defeitos com prints e evidências](https://docs.google.com/document/d/18lDCvX2jTZu_ONdjvJCA9C74HeG66ckL7Oz4-khEYDI/edit)
+
+Os prints estão incluídos no relatório do Google Docs. Documentos antigos, evidências brutas e backups foram preservados localmente e ficam fora da versão atual do repositório.
+
 ## Os cinco testes atuais
 
 | Teste | Ferramentas | O que verifica |
@@ -77,19 +86,19 @@ python -m pytest --collect-only -q
 
 O arquivo [ci.yml](.github/workflows/ci.yml) executa a verificação em pushes na branch `qa-sea`, em pull requests destinados a ela e manualmente pela aba Actions.
 
-O workflow prepara o Python, instala `requirements-ci.txt`, analisa `conftest.py` e `tests/` com Ruff e verifica a coleta com Pytest. Ruff procura problemas como imports não utilizados e variáveis indefinidas. Qualquer falha nessas etapas deixa o CI vermelho.
+O workflow prepara o Python, instala `requirements-ci.txt`, analisa `conftest.py`, `pages/` e `tests/` com Ruff e verifica a coleta com Pytest. Ruff procura problemas como imports não utilizados e variáveis indefinidas. Qualquer falha nessas etapas deixa o CI vermelho.
 
-A [primeira execução desse CI foi aprovada](https://github.com/brunno3356/Desafio-SEA/actions/runs/36322513501). Isso confirma a análise estática e o carregamento dos cinco testes. **O CI não abre o Chrome nem executa os fluxos na aplicação ou na API.**
+A [execução do CI após a inclusão do Page Object foi aprovada](https://github.com/brunno3356/Desafio-SEA/actions/runs/36596575331). Isso confirma a análise estática e o carregamento dos cinco testes. **O CI não abre o Chrome nem executa os fluxos na aplicação ou na API.**
 
 Para reproduzir as verificações do CI localmente:
 
 ```powershell
 python -m pip install -r requirements-ci.txt
-python -m ruff check conftest.py tests
+python -m ruff check conftest.py pages tests
 python -m pytest --collect-only -q
 ```
 
-## Gerar evidências
+## Registrar uma execução local
 
 O relatório JUnit é nativo do Pytest:
 
@@ -98,18 +107,7 @@ New-Item -ItemType Directory -Force evidencias
 python -m pytest -v --junitxml=evidencias/execucao.xml 2>&1 | Tee-Object -FilePath evidencias/execucao.txt
 ```
 
-`evidencias/` fica fora do Git e recebe os resultados da execução feita pelo comando acima. A pasta `docs/evidencias/` guarda evidências históricas da exploração inicial. Nunca publique resposta integral de GET `/employees`, HTML ou print da listagem completa: podem conter dados de outras pessoas.
-
-Para obter um print de um formulário preenchido exclusivamente com seus dados fictícios, antes de salvar, adicione temporariamente no teste:
-
-```python
-from pathlib import Path
-
-Path("evidencias").mkdir(exist_ok=True)
-browser.find_element(By.CSS_SELECTOR, "form").screenshot("evidencias/formulario.png")
-```
-
-Capturar um elemento pode fazer o Selenium rolar a página. Revise as evidências antes de compartilhá-las.
+`evidencias/` fica fora do Git e recebe os resultados da execução feita pelo comando acima. Revise os arquivos antes de compartilhar, pois respostas da API e capturas da listagem podem conter dados de outras pessoas.
 
 ## Navegador e fixtures
 
@@ -122,7 +120,9 @@ browser = webdriver.Chrome()
 browser.get("https://analista-teste.seatecnologia.com.br/")
 ```
 
-A fixture `browser` cria uma sessão por teste. `yield browser` entrega a sessão à função que pediu o argumento `browser`. O bloco `finally` chama `browser.quit()` mesmo quando um `assert` falha. Não existe BrowserFactory, gerenciador próprio, Page Object ou biblioteca que substitua os comandos do Selenium. O [Selenium Manager](https://www.selenium.dev/documentation/selenium_manager/) acompanha o Selenium desde a versão 4.6 e resolve o driver quando nenhum é fornecido.
+A fixture `browser` cria uma sessão por teste. `yield browser` entrega a sessão à função que pediu o argumento `browser`. O bloco `finally` chama `browser.quit()` mesmo quando um `assert` falha. O [Selenium Manager](https://www.selenium.dev/documentation/selenium_manager/) acompanha o Selenium desde a versão 4.6 e resolve o driver quando nenhum é fornecido.
+
+Os testes de interface usam duas classes de Page Object: `CadastroPage` reúne os seletores, preenchimento e leitura das validações do formulário; `ListagemPage` reúne a abertura do cadastro, leitura da listagem e filtro de ativos. Ambas recebem o mesmo `browser` criado pela fixture. Os comandos `find_element`, `send_keys`, `click` e as esperas explícitas ficam em `pages/`; os `asserts` dos cenários continuam nos testes. As requisições de API permanecem nos testes e na fixture de dados.
 
 A janela é configurada em 1440×1500. As esperas pelo estado dos elementos usam `WebDriverWait`. Há pausas de 5 segundos em pontos de apresentação e antes de fechar o Chrome, para facilitar a visualização. No cadastro com sucesso, o teste espera a persistência pela API e recarrega a página uma vez antes de conferir a listagem.
 
@@ -152,19 +152,15 @@ O corpo utilizado é `{"state": {"employee": {...}}}`. O teste de consulta aceit
 ## Organização e leitura para a entrevista
 
 ```text
+pages/
+  __init__.py
+  cadastro_page.py
+  listagem_page.py
 tests/
   ui/test_cadastro.py
   ui/test_status.py
   api/test_employees.py
 .github/workflows/ci.yml
-backup/
-docs/
-  plano_de_testes.md
-  relatorio_bugs.md
-  diario_ia.md
-  estrategia.md
-  guia_dos_testes.md
-  evidencias/
 conftest.py
 pytest.ini
 requirements.txt
@@ -175,8 +171,4 @@ README.md
 
 Não existe `test_login.py`: a exploração não encontrou autenticação. Os dois cenários de cadastro estão em `test_cadastro.py`, em funções independentes.
 
-Para entender o código, comece pela fixture `browser` em `conftest.py`, leia os dois testes de cadastro, os dois de status e, por último, a consulta da API.
-
-## Material histórico
-
-Os documentos e resultados em `docs/` pertencem à exploração e à versão anterior da automação. As quantidades e os comandos antigos desses documentos não representam a suíte atual de cinco testes. A cópia da automação anterior está em `backup/automacao_17_testes_2026-09-27.zip` e não participa da execução principal.
+Para entender o código, comece pela fixture `browser` em `conftest.py`, leia `CadastroPage` e `ListagemPage`, depois os dois testes de cadastro, os dois de status e, por último, a consulta da API.
