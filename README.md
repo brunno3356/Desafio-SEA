@@ -25,6 +25,19 @@ Os dois testes de status alteram os registros pela API porque a exploração nã
 
 **Quantidade de testes não é resultado de execução.** A coleta atual confirmou `5 tests collected`. O CI aprovado verifica o código com Ruff e coleta esses cinco testes: são **0 cenários funcionais executados no CI**. Para executar os cenários no Chrome e na API, use os comandos abaixo e consulte o resultado do Pytest.
 
+## Clonar o projeto
+
+Antes de começar, instale o Git, o Python 3.14 (versão usada no projeto) e o Google Chrome. Os comandos `git` e `python` precisam estar disponíveis no terminal.
+
+No PowerShell, entre na pasta onde deseja guardar o projeto e execute:
+
+```powershell
+git clone --branch qa-sea https://github.com/brunno3356/Desafio-SEA.git
+cd Desafio-SEA
+```
+
+O primeiro comando baixa o repositório e seleciona a branch `qa-sea`; o segundo entra na pasta criada. No VS Code, abra essa pasta em **Arquivo > Abrir Pasta** e use o terminal integrado para os próximos passos.
+
 ## Preparar no Windows / PowerShell
 
 Ambiente utilizado: Windows, Python 3.14.6, Chrome 154.0.8037.57, Selenium 4.49.0, Pytest 9.1.1 e Requests 2.34.2. É necessário acesso à internet para a aplicação e, no primeiro uso, para o Selenium Manager obter o driver. As três dependências diretas estão fixadas em `requirements.txt`; dependências transitivas não estão congeladas.
@@ -37,7 +50,7 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-A `.venv` já foi criada e as dependências instaladas no ambiente desta entrega. Se o PowerShell bloquear a ativação, não é preciso alterar a política da máquina: use o executável da `.venv` diretamente:
+Após clonar, crie sua própria `.venv` e instale as dependências com os comandos acima. Se o PowerShell bloquear a ativação, não é preciso alterar a política da máquina: use o executável da `.venv` diretamente:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
